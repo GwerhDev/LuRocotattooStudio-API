@@ -41,7 +41,8 @@ const enviarEmail = async (email, code) => {
         from: GOOGLE_USER,
         to: email,
         subject: "Verificación de cuenta de Email de nuevo Usuario.",
-        html: htmlEmail(email, code, "http://localhost:3000")
+        //html: htmlEmail(email, code, "http://localhost:3000")
+        text: `Por favor, haz clic en el siguiente enlace para verificar tu cuenta: http://localhost:3001/verificar?codigo=${code}`
     }
     await transport.sendMail(emailOptions, (error, response) => {
         if(error){

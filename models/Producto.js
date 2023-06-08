@@ -5,7 +5,7 @@ const schema = new mongoose.Schema({
     imagen: {type: String},
     descripcion: {type: String},
     precio: {type: Number},
-    cantidad: {type: Number}
+    stock: {type: Number}
 })
 
 

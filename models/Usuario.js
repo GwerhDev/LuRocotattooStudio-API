@@ -1,6 +1,5 @@
 const mongoose = require("mongoose")
 
-
 const usuarioSchema = new mongoose.Schema({
     nombre: {type: String, required: true, min: 3, max: 15},
     apellido: {type: String, required: true, min: 3, max: 15},
@@ -13,19 +12,36 @@ const usuarioSchema = new mongoose.Schema({
         required: true, 
         // match: [/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/]
         },
-    contraseña: [{
+    password: {
         type: String,
-        min: [5, 'La contraseña es muy corta'],
-        max: [32, 'La contraseña es muy larga'],
-        required: true
-    }],
+        required: false
+    },
+    registro: {
+        type: String,
+        enum: ['google', 'email'],
+        required: true,
+        default: 'email'
+    },
     foto: {type: String, required: true},
     from: [{type: String, required: true}],
     role: {type: String, required: true},
+    token: {type: String, required: false},
+    verifytoken: {type: String, required: false, unique: true},
     logged: {type: String, required: false},
     verified: {type: String, required: false},
     code: {type: String, required: false},
 })
+
+usuarioSchema.pre('save', function(next) {
+    if (this.registro === 'email') {
+      const error = new Error('Error de validación');
+      if (!this.password) {
+        error.message = 'La contraseña es requerida';
+        return next(error);
+      }
+    }
+    next();
+  });
 
 const ModeloUsuario = mongoose.model("usuarios", usuarioSchema);
 

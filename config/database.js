@@ -2,7 +2,7 @@ const mongoose = require('mongoose')
 
 mongoose.set('strictQuery', false)
 mongoose.connect(
-    process.env.MONGO_DB,
+    'mongodb+srv://LuRocoTattoo:lurocotattoo@cluster0.uhmmqpc.mongodb.net/LuRocoTattoo?',
     {
         useUnifiedTopology: true,
         useNewUrlParser: true
