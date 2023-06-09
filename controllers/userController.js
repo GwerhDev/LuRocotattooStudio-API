@@ -63,16 +63,11 @@ async function sendEmail(recipe, code) {
 const loginwithgoogle = async (req, res) => {
     const { token } = req.body
     try {
-        const user = await Usuario.findOne({ token: accessToken });
-
-        if (user) {
-            const decoded = jwt.verify(token, SECRET_KEY);
-
-            return res.status(200).json(decoded)
-        }
+        const decoded = jwt.verify(token, SECRET_KEY);
+        return res.status(200).json(decoded)
     } catch (error) {
         console.log(error)
-        return res.status(500).json('Error del servidor ', error)
+        return res.status(500).json('Error del servidor ')
     }
 }
 
