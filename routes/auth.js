@@ -80,4 +80,6 @@ router.post('/login', userController.login)
 
 router.post('/updatephoto', userController.updateUserPhoto)
 
+router.post('/getuserbytoken', userController.getUser)
+
 module.exports = router
