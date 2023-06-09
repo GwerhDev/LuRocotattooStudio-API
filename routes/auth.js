@@ -14,7 +14,7 @@ const passport = require('passport')
 router.use(passport.initialize())
 router.use(passport.session());
 
-router.get('/google', passport.authenticate('google', {
+router.get('/google', passport.authenticate('google-login', {
     scope: [
         'email',
         'profile',
@@ -22,14 +22,13 @@ router.get('/google', passport.authenticate('google', {
         'https://www.googleapis.com/auth/userinfo.profile'
     ],
 }))
-router.get('/google/callback', passport.authenticate('google', {
-    successRedirect: `http://localhost:3000/auth/callback/success`,
-    failureRedirect: 'http://localhost:3000/auth/callback/failure'
+router.get('/google/login/callback/', passport.authenticate('google-login', {
+    successRedirect: `/auth/login/callback/success`,
+    failureRedirect: '/auth/login/callback/failure'
 }))
 
-router.get('/callback/success', async (req, res) => {
+router.get('/login/callback/success', async (req, res) => {
     if (!req.user) {
-        // res.redirect(`/callback/failure`);
         return res.status(500).json('Error del servidorrrrrrrrrrrrrrrr')
     }
     try {
