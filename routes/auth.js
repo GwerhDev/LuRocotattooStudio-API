@@ -30,45 +30,54 @@ router.get('/google/callback', passport.authenticate('google', {
 router.get('/callback/success', async (req, res) => {
     if (!req.user) {
         // res.redirect(`/callback/failure`);
-        return res.status(500).json('Error del servidor ')
+        return res.status(500).json('Error del servidorrrrrrrrrrrrrrrr')
     }
-
-    console.log(req.user)
-
-    const accessToken = req.user.accessToken;
-
-    await Usuario.findOneAndUpdate({ email: req.user.emails[0].value }, { token: req.user.accessToken }, { new: true })
-        .then(user => {
-            if (user) {
-                // User updated successfully, updated user object returned
-                return res.redirect(`http://localhost:3001/auth?token=${accessToken}`)
-            } else {
-                // User not found or not updated
-                const user = new Usuario({
-                    nombre: req.user.name.givenName,
-                    apellido: req.user.name.familyName,
-                    email: req.user.emails[0].value,
-                    registro: 'google',
-                    foto: req.user.photos[0].value,
-                    role: req.user.emails[0].value === 'lurocotattoostudio23@gmail.com' ? 'admin' : 'usuario',
-                    token: req.user.accessToken,
-                    verified: 'true'
-                });
-
-                user.save()
-                    .then(savedUser => {
-                        return res.redirect(`http://localhost:3001/auth?token=${accessToken}`)
-                    })
-                    .catch(error => {
-                        return res.status(500).json('Error del servidor ', error)
-                    });
-            }
-        })
-        .catch(error => {
-            return res.status(500).json('Error del servidor ', error)
-        });
-
-});
+    try {
+        const user = await Usuario.findOneAndUpdate(
+            { email: req.user.emails[0].value },
+            { token: req.user.accessToken },
+            { new: true }
+        );
+        if (user) {
+            const payload = {
+                nombre: user.nombre,
+                apellido: user.apellido,
+                email: user.email,
+                role: user.role,
+                foto: user.foto,
+                verified: user.verified,
+                id: user._id
+            };
+            const tokenjwt = jwt.sign(payload, SECRET_KEY, { expiresIn: '3h' });
+            return res.redirect(`http://localhost:3001/auth?token=${tokenjwt}`);
+        } else {
+            const newUser = new Usuario({
+                nombre: req.user.name.givenName,
+                apellido: req.user.name.familyName,
+                email: req.user.emails[0].value,
+                registro: 'google',
+                foto: req.user.photos[0].value,
+                role: req.user.emails[0].value === 'lurocotattoostudio23@gmail.com' ? 'admin' : 'usuario',
+                token: req.user.accessToken,
+                verified: 'true'
+            });
+            await newUser.save();
+            const payload = {
+                nombre: newUser.nombre,
+                apellido: newUser.apellido,
+                email: newUser.email,
+                role: newUser.role,
+                foto: newUser.foto,
+                verified: newUser.verified,
+                id: newUser._id
+            };
+            const tokenjwt = await jwt.sign(payload, SECRET_KEY, { expiresIn: '3h' });
+            return res.redirect(`http://localhost:3001/auth?token=${tokenjwt}`);
+        }
+    } catch (error) {
+        return res.status(500).json('Error del servidor');
+    }
+})
 
 router.post('/loginwithgoogle', userController.loginwithgoogle)
 

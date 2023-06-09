@@ -61,22 +61,14 @@ async function sendEmail(recipe, code) {
 }
 
 const loginwithgoogle = async (req, res) => {
-    const { accessToken } = req.body
+    const { token } = req.body
     try {
         const user = await Usuario.findOne({ token: accessToken });
 
         if (user) {
-            const nombre = user.nombre;
-            const apellido = user.apellido;
-            const email = user.email;
-            const role = user.role;
-            const foto = user.foto
+            const decoded = jwt.verify(token, SECRET_KEY);
 
-            const payload = {
-                nombre, apellido, email, role, foto
-            }
-
-            return res.status(200).json(payload)
+            return res.status(200).json(decoded)
         }
     } catch (error) {
         console.log(error)
@@ -180,12 +172,7 @@ const getUser = async (req, res) => {
         return res.status(401).json({ message: 'No se proporcionó un token' });
     }
     try {
-        console.log('entra al try')
-    // Verificar y decodificar el token
-    console.log(SECRET_KEY)
-    const decoded = jwt.verify(token, SECRET_KEY);
-        console.log(decoded)
-    // Agregar los datos decodificados al objeto de solicitud para usarlos en las rutas protegidas
+        const decoded = jwt.verify(token, SECRET_KEY);
     return res.status(200).json(decoded)
 
     } catch (error) {
