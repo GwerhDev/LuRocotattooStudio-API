@@ -22,21 +22,28 @@ router.get('/google', passport.authenticate('google-login', {
         'https://www.googleapis.com/auth/userinfo.profile'
     ],
 }))
+
 router.get('/google/login/callback/', passport.authenticate('google-login', {
-    successRedirect: `/auth/login/callback/success`,
-    failureRedirect: '/auth/login/callback/failure'
+    successRedirect: `/auth/google/login/callback/success`,
+    failureRedirect: '/auth/google/login/callback/failure'
 }))
 
-router.get('/login/callback/success', async (req, res) => {
-    if (!req.user) {
+router.get('/google/login/callback/failure', async (req, res) => {
+    return res.redirect(`http://localhost:3001/`);
+})
+
+
+router.get('/google/login/callback/success', async (req, res) => {
+    if (!req.session.passport.user) {
         return res.status(500).json('Error del servidorrrrrrrrrrrrrrrr')
     }
     try {
         const user = await Usuario.findOneAndUpdate(
-            { email: req.user.emails[0].value },
-            { token: req.user.accessToken },
+            { email: req.session.passport.user.emails[0]?.value },
+            { token: req.session.passport.user.accessToken },
             { new: true }
         );
+        console.log(user)
         if (user) {
             const payload = {
                 nombre: user.nombre,
@@ -51,13 +58,13 @@ router.get('/login/callback/success', async (req, res) => {
             return res.redirect(`http://localhost:3001/auth?token=${tokenjwt}`);
         } else {
             const newUser = new Usuario({
-                nombre: req.user.name.givenName,
-                apellido: req.user.name.familyName,
-                email: req.user.emails[0].value,
+                nombre: req.session.passport.user.name.givenName,
+                apellido: req.session.passport.user.name.familyName,
+                email: req.session.passport.user.emails[0]?.value,
                 registro: 'google',
-                foto: req.user.photos[0].value,
-                role: req.user.emails[0].value === 'lurocotattoostudio23@gmail.com' ? 'admin' : 'usuario',
-                token: req.user.accessToken,
+                foto: req.session.passport.user.photos[0]?.value,
+                role: req.session.passport.user.emails[0]?.value === 'lurocotattoostudio23@gmail.com' ? 'admin' : 'usuario',
+                token: req.session.passport.user.accessToken,
                 verified: 'true'
             });
             await newUser.save();
@@ -74,7 +81,8 @@ router.get('/login/callback/success', async (req, res) => {
             return res.redirect(`http://localhost:3001/auth?token=${tokenjwt}`);
         }
     } catch (error) {
-        return res.status(500).json('Error del servidor');
+        console.log(error)
+        return res.status(500).redirect(`http://localhost:3001/`);
     }
 })
 

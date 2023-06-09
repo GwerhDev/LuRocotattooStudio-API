@@ -12,7 +12,6 @@ router.post('/iniciarsesion', iniciarSesion);
 router.post('/cerrarsesion', cerrarSesion);
 router.get('/:id', unUsuario);
 router.delete('/:id', adminPassport.authenticate('jwt', {session:false}), eliminarUsuario);
-router.get('/acc/:code', verificarMail)
-
+router.get('/acc/:code', verificarMail);
 
 module.exports = router;
