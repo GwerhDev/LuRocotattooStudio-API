@@ -3,8 +3,9 @@ const bcrypt = require("bcrypt");
 const nodemailer = require('nodemailer');
 const { google } = require('googleapis');
 const { OAuth2 } = google.auth;
+const jwt = require('jsonwebtoken');
 require('dotenv').config()
-const { CLIENT_ID_GOOGLE, CLIENT_SECRET_GOOGLE, REFRESH_TOKEN } = process.env
+const { CLIENT_ID_GOOGLE, CLIENT_SECRET_GOOGLE, REFRESH_TOKEN, SECRET_KEY } = process.env
 
 const oauth2Client = new OAuth2(
     CLIENT_ID_GOOGLE,
@@ -161,13 +162,34 @@ const login = async (req, res) => {
         const verified = user.verified
 
         const payload = {
-            nombre, apellido, email, role, foto, verified
+            nombre, apellido, email, role, foto, verified, id: user._id
         }
 
-        return res.status(200).json(payload)
+        const token = jwt.sign(payload, SECRET_KEY, { expiresIn: '3h' });
+
+        return res.status(200).json(token)
     } catch (error) {
         console.log(error)
         return res.status(500).json('error del servidor ')
+    }
+}
+
+const getUser = async (req, res) => {
+    const token = req.headers.authorization;
+    if (!token) {
+        return res.status(401).json({ message: 'No se proporcionó un token' });
+    }
+    try {
+        console.log('entra al try')
+    // Verificar y decodificar el token
+    console.log(SECRET_KEY)
+    const decoded = jwt.verify(token, SECRET_KEY);
+        console.log(decoded)
+    // Agregar los datos decodificados al objeto de solicitud para usarlos en las rutas protegidas
+    return res.status(200).json(decoded)
+
+    } catch (error) {
+        return res.status(401).json({ message: 'Token inválido' });
     }
 }
 
@@ -197,7 +219,8 @@ module.exports = {
     loginwithgoogle,
     verifyemail,
     login,
-    updateUserPhoto
+    updateUserPhoto,
+    getUser
 }
 
 refreshAccessTokenIfNeeded()
