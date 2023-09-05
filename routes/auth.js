@@ -1,17 +1,19 @@
-const Usuario = require('../models/Usuario')
-const express = require('express')
+require('../integrations/passport2');
 const session = require('express-session');
-const jwt = require('jsonwebtoken')
+const express = require('express')
+const passport = require('passport');
 const router = express.Router();
-const userController = require('../controllers/userController')
+const jwt = require('jsonwebtoken')
+
+const { SECRET, SESSION_SECRET } = require('../config');
+const Usuario = require('../models/Usuario')
+const userController = require('../controllers/userController');
+const { createToken } = require('../integrations/jwt');
 router.use(session({
-    secret: 'dsfasdfaergfeqgvdcv',
+    secret: SESSION_SECRET,
     resave: false,
     saveUninitialized: false
 }));
-require('../config/passport2')
-const passport = require('passport')
-const { SECRET_KEY } = process.env
 
 router.use(passport.initialize())
 router.use(passport.session());
@@ -73,7 +75,7 @@ router.get('/google/login/callback/success', async (req, res) => {
                 verified: user.verified,
                 id: user._id
             };
-            const tokenjwt = jwt.sign(payload, SECRET_KEY, { expiresIn: '3h' });
+            const tokenjwt = await createToken(payload, 3);
             return res.redirect(`http://localhost:3001/auth?token=${tokenjwt}`);
         } else {
             const newUser = new Usuario({
@@ -96,7 +98,7 @@ router.get('/google/login/callback/success', async (req, res) => {
                 verified: newUser.verified,
                 id: newUser._id
             };
-            const tokenjwt = await jwt.sign(payload, SECRET_KEY, { expiresIn: '3h' });
+            const tokenjwt = await createToken(payload, 3);
             return res.redirect(`http://localhost:3001/auth?token=${tokenjwt}`);
         }
     } catch (error) {
@@ -107,13 +109,12 @@ router.get('/google/login/callback/success', async (req, res) => {
 
 router.get('/google/signup/callback/success', async (req, res) => {
     if (!req.session.passport.user) {
-        return res.status(500).json('Error del servidorrrrrrrrrrrrrrrr')
+        return res.status(500).json('Error del servidor')
     }
     try {
         console.log('email: ', req.session.passport.user)
-        const user = await Usuario.findOneAndUpdate(
+        const user = await Usuario.findOne(
             { email: req.session.passport.user.email },
-            { token: req.session.passport.user.accessToken },
             { new: true }
         );
         console.log(user)
@@ -127,20 +128,20 @@ router.get('/google/signup/callback/success', async (req, res) => {
                 verified: user.verified,
                 id: user._id
             };
-            const tokenjwt = jwt.sign(payload, SECRET_KEY, { expiresIn: '3h' });
+            const tokenjwt = await createToken(payload, 3);
             return res.redirect(`http://localhost:3001/auth?token=${tokenjwt}`);
         } else {
             const newUser = new Usuario({
-                nombre: req.session.passport.user.name,
+                nombre: req.session.passport.user.name.split(' ')[0],
                 apellido: req.session.passport.user.name.split(' ')[1],
                 email: req.session.passport.user.email,
                 registro: 'google',
                 foto: req.session.passport.user.photo,
-                role: req.session.passport.user.email === 'lurocotattoostudio23@gmail.com' ? 'admin' : 'usuario',
-                token: req.session.passport.user.accessToken,
+                role: req.session.passport.user.email === 'valearellano14@gmail.com' ? 'admin' : 'usuario',
                 verified: 'true'
             });
             await newUser.save();
+            console.log(newUser)
             const payload = {
                 nombre: newUser.nombre,
                 apellido: newUser.apellido,
@@ -150,7 +151,7 @@ router.get('/google/signup/callback/success', async (req, res) => {
                 verified: newUser.verified,
                 id: newUser._id
             };
-            const tokenjwt = await jwt.sign(payload, SECRET_KEY, { expiresIn: '3h' });
+            const tokenjwt = await createToken(payload, 3);
             return res.redirect(`http://localhost:3001/auth?token=${tokenjwt}`);
         }
     } catch (error) {
@@ -161,7 +162,7 @@ router.get('/google/signup/callback/success', async (req, res) => {
 
 router.post('/loginwithgoogle', userController.loginwithgoogle)
 
-router.post('/signup', userController.signup)
+router.post('/signup/inner', userController.signup)
 
 router.get('/verifyemail/:code', userController.verifyemail)
 

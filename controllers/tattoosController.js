@@ -5,8 +5,8 @@ const os = require("os");
 const path = require('path');
 const { google } = require('googleapis');
 const Artista = require('../models/Artista');
+const { CLIENT_ID_GOOGLE, CLIENT_SECRET_GOOGLE, ACCESS_TOKEN, REFRESH_TOKEN } = require('../config');
 const { OAuth2 } = google.auth;
-const { CLIENT_ID_GOOGLE, CLIENT_SECRET_GOOGLE, REFRESH_TOKEN, ACCESS_TOKEN } = process.env
 const oauth2Client = new OAuth2(
     CLIENT_ID_GOOGLE,
     CLIENT_SECRET_GOOGLE,

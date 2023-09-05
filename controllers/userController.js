@@ -4,8 +4,9 @@ const nodemailer = require('nodemailer');
 const { google } = require('googleapis');
 const { OAuth2 } = google.auth;
 const jwt = require('jsonwebtoken');
+const { CLIENT_ID_GOOGLE, CLIENT_SECRET_GOOGLE, REFRESH_TOKEN } = require('../config');
+const { createToken, decodeToken } = require('../integrations/jwt');
 require('dotenv').config()
-const { CLIENT_ID_GOOGLE, CLIENT_SECRET_GOOGLE, REFRESH_TOKEN, SECRET_KEY } = process.env
 
 const oauth2Client = new OAuth2(
     CLIENT_ID_GOOGLE,
@@ -63,11 +64,13 @@ async function sendEmail(recipe, code) {
 const loginwithgoogle = async (req, res) => {
     const { token } = req.body
     try {
-        const decoded = jwt.verify(token, SECRET_KEY);
-        return res.status(200).json(decoded)
+        const decoded = await decodeToken(token);
+        console.log(decoded)
+        const response = await createToken(decoded.id, 3)
+        return res.status(200).send(response)
     } catch (error) {
         console.log(error)
-        return res.status(500).json('Error del servidor ')
+        return res.status(500).send({ error: 'Error del servidor '})
     }
 }
 
@@ -152,7 +155,7 @@ const login = async (req, res) => {
             nombre, apellido, email, role, foto, verified, id: user._id
         }
 
-        const token = jwt.sign(payload, SECRET_KEY, { expiresIn: '3h' });
+        const token = createToken(payload, 3);
 
         return res.status(200).json(token)
     } catch (error) {

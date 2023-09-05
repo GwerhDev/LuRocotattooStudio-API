@@ -3,24 +3,18 @@ const { google } = require('googleapis')
 const { oauth2 } = require('googleapis/build/src/apis/oauth2')
 const OAuth2 = google.auth.OAuth2
 const htmlEmail = require('../views/htmlEmail')
+const { CLIENT_ID_GOOGLE, CLIENT_SECRET_GOOGLE, REFRESH_TOKEN } = require('../config')
 
-const {
-    GOOGLE_ID_CLIENT,
-    GOOGLE_SECRET,
-    GOOGLE_REFRESH_TOKEN,
-    GOOGLE_URL,
-    GOOGLE_USER
-} = process.env
 
 const enviarEmail = async (email, code) => {
 
     const client = new OAuth2(
-        GOOGLE_ID_CLIENT,
-        GOOGLE_SECRET,
+        CLIENT_ID_GOOGLE,
+        CLIENT_SECRET_GOOGLE,
         GOOGLE_URL
     )
     client.setCredentials({
-        refresh_token: GOOGLE_REFRESH_TOKEN
+        refresh_token: REFRESH_TOKEN
     })
     const accessToken = client.getAccessToken()
     const transport = nodemailer.createTransport({

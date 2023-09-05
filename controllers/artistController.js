@@ -4,8 +4,8 @@ const fs = require('fs');
 const os = require("os");
 const path = require('path');
 const { google } = require('googleapis');
+const { CLIENT_ID_GOOGLE, CLIENT_SECRET_GOOGLE, REFRESH_TOKEN } = require('../config');
 const { OAuth2 } = google.auth;
-const { CLIENT_ID_GOOGLE, CLIENT_SECRET_GOOGLE, REFRESH_TOKEN, ACCESS_TOKEN } = process.env
 const cloudinary = require("cloudinary").v2;
 
 cloudinary.config({
